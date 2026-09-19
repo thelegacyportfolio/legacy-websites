@@ -1,0 +1,50 @@
+# Secrets and environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Dependencies and generated output
+node_modules/
+vendor/
+dist/
+build/
+.cache/
+cache/
+tmp/
+temp/
+logs/
+*.log
+
+# Archives and database exports
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.sql
+*.sqlite
+*.sqlite3
+backups/
+
+# WordPress runtime and host-managed content
+wp-config.php
+wp-content/cache/
+wp-content/upgrade/
+wp-content/backups*/
+wp-content/ai1wm-backups/
+wp-content/updraft/
+wp-content/debug.log
+
+# User/customer-generated data
+submissions/
+form-data/
