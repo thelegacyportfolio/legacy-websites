@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
+  <title>Learn</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* 1. Light Mode Variables */
+    :root {
+      --bg: #f5f5f7;
+      --card: #ffffff;
+      --text-primary: #13161b;
+      --text-secondary: #85888e;
+      --shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+      --radius: 12px;
+      --peek: 28px;
+      --gap: 12px;
+      --dot: #d0d5dd;
+      --dot-active: #344054;
+      --dot-progress: rgba(255, 255, 255, 0.4);
+      --border: #ededed;
+      --thumb-bg: #d7dbe4;
+      --icon-color: #a4a7ae;
+    }
+
+    /* 2. Dark Mode Variables */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000000;
+        --card: #1c1c1e;
+        --text-primary: #ffffff;
+        --text-secondary: #98989d;
+        --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        --dot: #3a3a3c;
+        --dot-active: #ffffff;
+        --dot-progress: rgba(0, 0, 0, 0.3);
+        --border: #38383a;
+        --thumb-bg: #2c2c2e;
+        --icon-color: #636366;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+      /* Stop iOS rubber-band bouncing on the main view */
+      overscroll-behavior-y: none;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text-primary);
+      transition: background-color 0.3s ease, color 0.3s ease;
+      
+      /* App Store Polish: Kill web text selection & long-press popups */
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    /* Lazy Loading Fade-in */
+    img {
+      display: block;
+      max-width: 100%;
+      opacity: 0;
+      transition: opacity 0.4s ease-in-out;
+      /* Allow users to save images if they want, or keep disabled via body rule */
+      pointer-events: none; 
+    }
+    
+    img.loaded, img[loading="eager"] {
+      opacity: 1;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .app {
+      max-width: 402px;
+      margin: 0 auto;
+      min-height: 100vh;
+      /* App Store Polish: Safe Areas for Notch and Home Bar */
+      padding: calc(24px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom));
+    }
+
+    .page-title {
+      margin: 0 0 24px;
+      font-size: 32px;
+      line-height: 1.1;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 18px;
+      line-height: 28px;
+      font-weight: 700;
+    }
+
+    /* Carousel */
+    .carousel-shell {
+      width: 100%;
+    }
+
+    .carousel {
+      display: flex;
+      gap: var(--gap);
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      scroll-padding-left: 0;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-right: var(--peek);
+      padding-bottom: 4px;
+      overscroll-behavior-x: contain;
+    }
+
+    .carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .carousel-card {
+      position: relative;
+      flex: 0 0 calc(100% - var(--peek));
+      width: calc(100% - var(--peek));
+      height: 192px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      transition: box-shadow 260ms ease, transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      contain: paint;
+    }
+
+    .carousel-card.is-active {
+      box-shadow: 0 10px 28px rgba(16, 24, 40, 0.12);
+      transform: scale(1);
+    }
+    
+    .carousel-card:not(.is-active) {
+      transform: scale(0.98);
+      opacity: 0.95;
+    }
+
+    .carousel-card img.bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .carousel-overlay {
+      position: absolute;
+      inset: 0;
+      /* Repaired: Lighter gradient, pushed further down the image */
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.35) 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .carousel-text {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      z-index: 2;
+      color: #ffffff;
+      font-size: 16px;
+      line-height: 20px;
+      font-weight: 500;
+      /* Repaired: Crisp drop shadow instead of a heavy gradient */
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+      transform: translateZ(0);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+/* Base Section Styling */
+.gl-section {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  max-width: 600px;
+  margin: 0 auto 30px auto;
+  color: #ffffff;
+}
+
+/* Titles and Text */
+.gl-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.gl-warning-text {
+  font-size: 1rem;
+  color: #e5e5ea; /* Slightly off-white for reading comfort */
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.gl-warning-text a {
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* Container for the cards */
+.gl-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Space between cards */
+}
+
+/* Individual Card Styling (Matches GL Video Guides card) */
+.gl-card {
+  background-color: #1c1c1e; /* Dark gray */
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.gl-card:hover {
+  background-color: #2c2c2e; /* Slight highlight on hover */
+}
+
+/* Text inside the cards */
+.gl-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gl-card-title {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.gl-card-subtitle {
+  color: #8e8e93; /* Subtle gray matching the 'GuardianLock.org' text */
+  font-size: 0.85rem;
+}
+
+/* Icon inside the cards */
+.gl-card-icon {
+  color: #5a5a5e; /* Dimmed icon color */
+  display: flex;
+  align-items: center;
+}
+
+/* Footer link at the very bottom */
+.gl-footer-link {
+  color: #8e8e93;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.gl-footer-link:hover {
+  text-decoration: underline;
+}
+
+    /* IG-Style Dots */
+    .dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      align-items: center;
+    }
+
+    .dot {
+      position: relative;
+      width: 8px;
+      height: 8px;
+      border: none;
+      border-radius: 999px;
+      background: var(--dot);
+      padding: 0;
+      overflow: hidden;
+      cursor: pointer;
+      transition: width 220ms ease, background 220ms ease;
+    }
+
+    .dot.active {
+      width: 32px;
+      background: var(--dot-active);
+    }
+
+    .dot-progress {
+      position: absolute;
+      inset: 0;
+      width: 0%;
+      background: var(--dot-progress);
+      border-radius: inherit;
+      transform-origin: left center;
+      /* JS animates width directly now */
+    }
+
+    /* Tiles */
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tile {
+      width: calc(50% - 5px);
+      background: var(--card);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+      transition: background-color 0.3s ease, transform 0.15s ease;
+    }
+
+    .tile:active {
+      transform: scale(0.97);
+    }
+
+    .thumb {
+      position: relative;
+      height: 89px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--thumb-bg);
+      transition: background-color 0.3s ease;
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .book-icon {
+      position: absolute;
+      top: 7px;
+      right: 9px;
+      width: 16px;
+      height: 16px;
+      color: #ffffff;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.16));
+    }
+
+    .tile-title {
+      margin: 7px 0 0;
+      font-size: 16px;
+      line-height: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .tile-sub {
+      margin: 0;
+      font-size: 12px;
+      line-height: 20px;
+      color: var(--text-secondary);
+    }
+
+    /* Guides */
+    .guide {
+      display: block;
+      background: var(--card);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 10px;
+      box-shadow: var(--shadow);
+      transition: background-color 0.3s ease, transform 0.15s ease;
+    }
+
+    .guide:active {
+      transform: scale(0.98);
+    }
+
+    .guide-img {
+      height: 137px;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+      background: var(--thumb-bg);
+    }
+
+    .guide-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .guide-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, rgba(66, 164, 176, 0.18), rgba(66, 164, 176, 0.18));
+    }
+
+    .guide-text-overlay {
+      position: absolute;
+      left: 18px;
+      top: 58px;
+      width: 62%;
+      color: #fff;
+      font-size: 17px;
+      line-height: 20px;
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      z-index: 2;
+    }
+
+    .guide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .guide-title {
+      margin: 0;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .guide-sub {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 20px;
+    }
+
+    /* List cards */
+    .list-card {
+      width: 100%;
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px 16px 10px;
+      box-shadow: var(--shadow);
+      transition: background-color 0.3s ease;
+    }
+
+    .resource-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 0 12px;
+      min-height: 56px;
+      border-bottom: 1px solid var(--border);
+      transition: border-color 0.3s ease, opacity 0.2s ease;
+    }
+
+    .resource-item:active {
+      opacity: 0.6;
+    }
+
+    .resource-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .resource-title {
+      margin: 0;
+      font-size: 16px;
+      line-height: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .resource-sub {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 20px;
+    }
+
+    .share-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--icon-color);
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 390px) {
+      :root { --peek: 22px; }
+      .tile { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1 class="page-title">Learn</h1>
+
+    <section class="section">
+      <h2 class="section-title">Proud Partners of</h2>
+
+      <div class="carousel-shell" id="carouselShell">
+        <div class="carousel" id="partnersCarousel" aria-label="Partner carousel">
+          <a class="carousel-card is-active" href="https://protectyounghearts.com/" target="_blank" rel="noopener noreferrer">
+            <img class="bg" src="images/partner-protect-young-hearts.png" alt="Protect Young Hearts" loading="eager" fetchpriority="high" />
+          </a>
+
+          <a class="carousel-card" href="https://digitalcitizenacademy.org" target="_blank" rel="noopener noreferrer">
+            <img class="bg" src="images/partner-digital-citizen.png" alt="Digital Citizen Academy" loading="lazy" decoding="async" />
+          </a>
+
+          <a class="carousel-card" href="https://www.redlightrebellion.org" target="_blank" rel="noopener noreferrer">
+            <img class="bg" src="images/rlr_logo.jpeg" alt="Red Light Rebellion" loading="lazy" decoding="async" />
+            <div class="carousel-overlay"></div>
+            <div class="carousel-text">Join the fight for freedom and help expose exploitation.</div>
+          </a>
+          
+          <a class="carousel-card" href="https://parentcenter.org/get-educated/" target="_blank" rel="noopener noreferrer">
+            <img class="bg" src="images/ncose.webp" alt="NCOSE Parent Center" loading="lazy" decoding="async" />
+          </a>
+        
+        </div>
+
+        <div class="dots" id="carouselDots" aria-label="Carousel pagination">
+          <button class="dot active" type="button" aria-label="Go to slide 1"><span class="dot-progress"></span></button>
+          <button class="dot" type="button" aria-label="Go to slide 2"><span class="dot-progress"></span></button>
+          <button class="dot" type="button" aria-label="Go to slide 3"><span class="dot-progress"></span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">GuardianLock</h2>
+
+      <div class="grid">
+        <a class="tile" href="guides.html">
+          <div class="thumb">
+            <img src="assets/imgs/aboutkids.png" alt="Guides" loading="lazy" decoding="async" />
+            <svg class="book-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4.75 6.75C4.75 5.64543 5.64543 4.75 6.75 4.75H11.25C12.3546 4.75 13.25 5.64543 13.25 6.75V18.25H6.75C5.64543 18.25 4.75 17.3546 4.75 16.25V6.75Z" stroke="currentColor" stroke-width="1.7"/>
+              <path d="M10.75 4.75H17.25C18.3546 4.75 19.25 5.64543 19.25 6.75V16.25C19.25 17.3546 18.3546 18.25 17.25 18.25H10.75V4.75Z" stroke="currentColor" stroke-width="1.7"/>
+            </svg>
+          </div>
+          <p class="tile-title">Getting Started</p>
+        </a>
+
+        <a class="tile" href="https://guardianlock.org/learn" target="_blank" rel="noopener noreferrer">
+          <div class="thumb">
+            <img src="images/tile-thumbnail.png" alt="Assessments" loading="lazy" decoding="async" />
+            <svg class="book-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4.75 6.75C4.75 5.64543 5.64543 4.75 6.75 4.75H11.25C12.3546 4.75 13.25 5.64543 13.25 6.75V18.25H6.75C5.64543 18.25 4.75 17.3546 4.75 16.25V6.75Z" stroke="currentColor" stroke-width="1.7"/>
+              <path d="M10.75 4.75H17.25C18.3546 4.75 19.25 5.64543 19.25 6.75V16.25C19.25 17.3546 18.3546 18.25 17.25 18.25H10.75V4.75Z" stroke="currentColor" stroke-width="1.7"/>
+            </svg>
+          </div>
+          <p class="tile-title">Assessments</p>
+        </a>
+
+        <a class="tile" href="https://protectyounghearts.com/?blog=y" target="_blank" rel="noopener noreferrer">
+          <div class="thumb">
+            <img src="images/pyh.png" alt="Blogs" loading="lazy" decoding="async" />
+            <svg class="book-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4.75 6.75C4.75 5.64543 5.64543 4.75 6.75 4.75H11.25C12.3546 4.75 13.25 5.64543 13.25 6.75V18.25H6.75C5.64543 18.25 4.75 17.3546 4.75 16.25V6.75Z" stroke="currentColor" stroke-width="1.7"/>
+              <path d="M10.75 4.75H17.25C18.3546 4.75 19.25 5.64543 19.25 6.75V16.25C19.25 17.3546 18.3546 18.25 17.25 18.25H10.75V4.75Z" stroke="currentColor" stroke-width="1.7"/>
+            </svg>
+          </div>
+          <p class="tile-title">Blogs</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Guides</h2>
+
+      <a class="guide" href="https://protectyoungeyes.com/" target="_blank" rel="noopener noreferrer">
+        <div class="guide-img">
+          <img src="images/guide-free-downloads.png" alt="Free Downloads" loading="lazy" decoding="async" />
+          <div class="guide-overlay"></div>
+          <div class="guide-text-overlay">Free downloads. Step-by-step, we show you how!</div>
+        </div>
+        <div class="guide-footer">
+          <div>
+            <p class="guide-title">Free Downloads</p>
+            <p class="guide-sub">ProtectYoungEyes.com</p>
+          </div>
+          <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14 5H19V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 14L19 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 14V17C19 18.1046 18.1046 19 17 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </a>
+ <a class="guide" href="https://join.mosyle.com/?account=modit" target="_blank" rel="noopener noreferrer">
+        <div class="guide-img">
+          <img src="images/tile-thumbnail.png" alt="Register YES User" loading="lazy" decoding="async" />
+        </div>
+        <div class="guide-footer">
+          <div>
+            <p class="guide-title">Your Essential Safety</p>
+            <p class="guide-sub">Guardianlock.org/YES</p>
+          </div>
+          <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14 5H19V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 14L19 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 14V17C19 18.1046 18.1046 19 17 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </a>
+
+ <a class="guide" href="https://parentcenter.org/" target="_blank" rel="noopener noreferrer">
+        <div class="guide-img">
+          <img src="images/ncose.webp" alt="NCOSE Parent Center" loading="lazy" decoding="async" />
+        </div>
+        <div class="guide-footer">
+          <div>
+            <p class="guide-title">Parent Center Resource</p>
+            <p class="guide-sub">parentcenter.org</p>
+          </div>
+          <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14 5H19V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 14L19 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 14V17C19 18.1046 18.1046 19 17 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </a>
+     
+ 
+      <a class="guide" href="https://defendyoungminds.com/" target="_blank" rel="noopener noreferrer">
+        <div class="guide-img">
+          <img
+            src="https://cdn.prod.website-files.com/60ca2e58bdee27fbe657dd9e/673ea162a21197552da7fc94_parents-and-child-having-conversation.jpg"
+            alt="DYM Guides"
+            loading="lazy"
+            decoding="async"
+          />
+          <div class="guide-overlay"></div>
+        </div>
+        <div class="guide-footer">
+          <div>
+            <p class="guide-title">DYM Guides</p>
+            <p class="guide-sub">DefendYoungMinds.com</p>
+          </div>
+          <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14 5H19V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 14L19 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 14V17C19 18.1046 18.1046 19 17 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </a>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Assessments</h2>
+      <div class="list-card">
+        <a class="resource-item" href="https://protectyounghearts.com/" target="_blank" rel="noopener noreferrer">
+          <div>
+            <p class="resource-title">Family Safety Check</p>
+            <p class="resource-sub">ProtectYoungHearts.com</p>
+          </div>
+          <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14 5H19V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 14L19 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 14V17C19 18.1046 18.1046 19 17 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+
+        <a class="resource-item" href="https://digitalcitizenacademy.org/" target="_blank" rel="noopener noreferrer">
+          <div>
+            <p class="resource-title">Student Readiness Quiz</p>
+            <p class="resource-sub">DigitalCitizenAcademy.org</p>
+          </div>
+          <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14 5H19V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 14L19 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 14V17C19 18.1046 18.1046 19 17 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+
+        <a class="resource-item" href="https://guardianlock.org/assessments" target="_blank" rel="noopener noreferrer">
+          <div>
+            <p class="resource-title">Parent Tech Boundaries</p>
+            <p class="resource-sub">GuardianLock.org</p>
+          </div>
+          <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14 5H19V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 14L19 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 14V17C19 18.1046 18.1046 19 17 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Blogs</h2>
+      <div class="list-card">
+        <a class="resource-item" href="https://protectyounghearts.com/" target="_blank" rel="noopener noreferrer">
+          <div>
+            <p class="resource-title">Talking to Kids About Devices</p>
+            <p class="resource-sub">ProtectYoungHearts.com</p>
+          </div>
+          <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14 5H19V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 14L19 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 14V17C19 18.1046 18.1046 19 17 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+
+        <a class="resource-item" href="https://defendyoungminds.com/" target="_blank" rel="noopener noreferrer">
+          <div>
+            <p class="resource-title">Best Practices for Digital Safety</p>
+            <p class="resource-sub">DefendYoungMinds.com</p>
+          </div>
+          <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14 5H19V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 14L19 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 14V17C19 18.1046 18.1046 19 17 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Video Guides for GL SafePhone</h2>
+      <div class="list-card">
+        <a class="resource-item" href="https://shop.guardianlock.org/pages/getting-started" target="_blank" rel="noopener noreferrer" style="border-bottom: none; padding-bottom: 0;">
+          <div>
+            <p class="resource-title">GL Video Guides</p>
+            <p class="resource-sub">GuardianLock.org</p>
+          </div>
+          <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14 5H19V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 14L19 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 14V17C19 18.1046 18.1046 19 17 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Support</h2>
+      <div class="list-card">
+        <a class="resource-item" href="https://guardianlock.org/support/" target="_blank" rel="noopener noreferrer" style="border-bottom: none; padding-bottom: 0;">
+          <div>
+            <p class="resource-title">Help & Support for Subsribers</p>
+            <p class="resource-sub">GuardianLock.org</p>
+          </div>
+          <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14 5H19V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 14L19 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 14V17C19 18.1046 18.1046 19 17 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </section>
+    
+        <section class="section">
+      <h2 class="section-title">Learn a way to Earn</h2>
+      <div class="list-card">
+        <a class="resource-item" href="https://affiliate.guardianlock.org" target="_blank" rel="noopener noreferrer" style="border-bottom: none; padding-bottom: 0;">
+          <div>
+            <p class="resource-title">Affiliate Login</p>
+            <p class="resource-sub">GuardianLock.org</p>
+          </div>
+          <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14 5H19V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 14L19 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 14V17C19 18.1046 18.1046 19 17 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </section>
+
+
+    <section class="gl-section">
+  <h2 class="gl-section-title">Need Help Now?</h2>
+  
+  <p class="gl-warning-text">
+    If you are experiencing an emergency, please <a href="tel:911">call 911</a> or one of these hotlines:
+  </p>
+
+  <div class="gl-card-list">
+    
+    <a href="tel:18883737888" class="gl-card">
+      <div class="gl-card-text">
+        <div class="gl-card-title">National Human Trafficking Hotline</div>
+        <div class="gl-card-subtitle">Call 1-888-373-7888 (TTY: 711) | Text 233733</div>
+      </div>
+      <div class="gl-card-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      </div>
+    </a>
+
+    <a href="tel:18007997233" class="gl-card">
+      <div class="gl-card-text">
+        <div class="gl-card-title">National Domestic Violence Hotline</div>
+        <div class="gl-card-subtitle">Call 1-800-799-SAFE</div>
+      </div>
+      <div class="gl-card-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      </div>
+    </a>
+
+    <a href="tel:18006564673" class="gl-card">
+      <div class="gl-card-text">
+        <div class="gl-card-title">National Sexual Assault Hotline</div>
+        <div class="gl-card-subtitle">Call 1-800-656-HOPE</div>
+      </div>
+      <div class="gl-card-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      </div>
+    </a>
+
+
+    <a href="tel:18004224453" class="gl-card">
+      <div class="gl-card-text">
+        <div class="gl-card-title">National Child Abuse Hotline</div>
+        <div class="gl-card-subtitle">Call 1-800-422-4453</div>
+      </div>
+      <div class="gl-card-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      </div>
+    </a>
+
+  </div>
+  
+  <div style="margin-top: 20px; padding-left: 5px;">
+    <a href="https://parentcenter.org/get-help" class="gl-footer-link">
+    </a>
+  </div>
+</section>
+
+    
+  </main>
+
+<script>
+  // 1. Image Lazy Loading Fade-In Script
+  document.addEventListener("DOMContentLoaded", () => {
+    const lazyImages = document.querySelectorAll('img[loading="lazy"]');
+    lazyImages.forEach(img => {
+      if (img.complete) {
+        img.classList.add('loaded');
+      } else {
+        img.addEventListener('load', () => img.classList.add('loaded'));
+      }
+    });
+  });
+
+  // 2. Ultra-Reliable JavaScript Carousel Engine (No CSS animation race conditions)
+  (function () {
+    const carousel = document.getElementById("partnersCarousel");
+    const carouselShell = document.getElementById("carouselShell");
+    const dotsWrap = document.getElementById("carouselDots");
+    if (!carousel || !dotsWrap) return;
+
+    const slides = Array.from(carousel.querySelectorAll(".carousel-card"));
+    const dots = Array.from(dotsWrap.querySelectorAll(".dot"));
+    const progressBars = dots.map(dot => dot.querySelector('.dot-progress'));
+
+    const AUTOPLAY_MS = 3500;
+    let currentIndex = 0;
+    let isInteracting = false;
+    let progress = 0;
+    let lastTime = performance.now();
+    let animationFrameId;
+
+    // Toggle active classes
+    function updateVisuals() {
+      slides.forEach((slide, i) => slide.classList.toggle("is-active", i === currentIndex));
+      dots.forEach((dot, i) => dot.classList.toggle("active", i === currentIndex));
+    }
+
+    // The single source of truth timer loop
+    function animateProgress(time) {
+      if (!lastTime) lastTime = time;
+      const deltaTime = time - lastTime;
+      lastTime = time;
+
+      if (!isInteracting) {
+        progress += (deltaTime / AUTOPLAY_MS) * 100;
+
+        // When the timer hits 100%, trigger the next slide
+        if (progress >= 100) {
+          progress = 0;
+          const nextIndex = (currentIndex + 1) % slides.length;
+          carousel.scrollTo({ left: slides[nextIndex].offsetLeft, behavior: "smooth" });
+        }
+      }
+
+      // Update the CSS width directly via JS
+      progressBars.forEach((bar, i) => {
+        if (i === currentIndex) {
+          bar.style.width = `${progress}%`;
+        } else {
+          bar.style.width = '0%';
+        }
+      });
+
+      animationFrameId = requestAnimationFrame(animateProgress);
+    }
+
+    // Native scroll event handles finding the active slide natively
+    // This perfectly calculates where the user swiped, or handles smooth scroll rewinds gracefully
+    carousel.addEventListener("scroll", () => {
+      let minDistance = Infinity;
+      let nearestIndex = 0;
+
+      slides.forEach((slide, i) => {
+        const distance = Math.abs(carousel.scrollLeft - slide.offsetLeft);
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestIndex = i;
+        }
+      });
+
+      // If the scroll crossed into a new slide's threshold, update the active state
+      if (nearestIndex !== currentIndex) {
+        currentIndex = nearestIndex;
+        progress = 0; // Instantly reset the progress bar for the new slide
+        updateVisuals();
+      }
+    }, { passive: true });
+
+    // Interaction handlers (Touch, hold, hover)
+    function pauseInteraction() {
+      isInteracting = true;
+      carouselShell.classList.add("is-paused");
+    }
+
+    function resumeInteraction() {
+      isInteracting = false;
+      carouselShell.classList.remove("is-paused");
+      lastTime = performance.now(); // Prevent time jumps
+    }
+
+    carousel.addEventListener("touchstart", pauseInteraction, { passive: true });
+    carousel.addEventListener("touchend", resumeInteraction, { passive: true });
+    carousel.addEventListener("mouseenter", pauseInteraction);
+    carousel.addEventListener("mouseleave", resumeInteraction);
+
+    // Manual dot clicks
+    dots.forEach((dot, index) => {
+      dot.addEventListener("click", () => {
+        carousel.scrollTo({ left: slides[index].offsetLeft, behavior: "smooth" });
+      });
+    });
+
+    // Fire it up
+    updateVisuals();
+    animationFrameId = requestAnimationFrame(animateProgress);
+  })();
+</script>
+</body>
+</html>
