@@ -100,7 +100,8 @@
     }
 
     .app {
-      max-width: 402px;
+      width: 100%;
+      max-width: none;
       margin: 0 auto;
       min-height: 100vh;
       /* App Store Polish: Safe Areas for Notch and Home Bar */
@@ -132,6 +133,7 @@
     }
 
     .carousel {
+      position: relative;
       display: flex;
       gap: var(--gap);
       overflow-x: auto;
@@ -153,7 +155,7 @@
       position: relative;
       flex: 0 0 calc(100% - var(--peek));
       width: calc(100% - var(--peek));
-      height: 192px;
+      height: clamp(192px, 32vw, 480px);
       border-radius: var(--radius);
       overflow: hidden;
       background: var(--card);
@@ -182,6 +184,16 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+
+    /* Keep the white Parent Center logo visible and uncropped in both themes. */
+    .carousel-card.parent-center-card {
+      background: #162a46;
+    }
+
+    .carousel-card.parent-center-card img.bg {
+      object-fit: contain;
+      padding: clamp(16px, 3vw, 40px);
     }
 
     .carousel-overlay {
@@ -544,7 +556,7 @@
             <div class="carousel-text">Join the fight for freedom and help expose exploitation.</div>
           </a>
           
-          <a class="carousel-card" href="https://parentcenter.org/get-educated/" target="_blank" rel="noopener noreferrer">
+          <a class="carousel-card parent-center-card" href="https://parentcenter.org/get-educated/" target="_blank" rel="noopener noreferrer">
             <img class="bg" src="images/ncose.webp" alt="NCOSE Parent Center" loading="lazy" decoding="async" />
           </a>
         
@@ -554,6 +566,7 @@
           <button class="dot active" type="button" aria-label="Go to slide 1"><span class="dot-progress"></span></button>
           <button class="dot" type="button" aria-label="Go to slide 2"><span class="dot-progress"></span></button>
           <button class="dot" type="button" aria-label="Go to slide 3"><span class="dot-progress"></span></button>
+          <button class="dot" type="button" aria-label="Go to slide 4"><span class="dot-progress"></span></button>
         </div>
       </div>
     </section>
@@ -618,7 +631,7 @@
           </svg>
         </div>
       </a>
- <a class="guide" href="https://join.mosyle.com/?account=modit" target="_blank" rel="noopener noreferrer">
+ <a class="guide" href="https://shop.guardianlock.org/products/yes" target="_blank" rel="noopener noreferrer">
         <div class="guide-img">
           <img src="images/tile-thumbnail.png" alt="Register YES User" loading="lazy" decoding="async" />
         </div>
