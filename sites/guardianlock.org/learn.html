@@ -21,12 +21,12 @@
       --bg: #f5f5f7;
       --card: #ffffff;
       --text-primary: #13161b;
-      --text-secondary: #85888e;
+      --text-secondary: #59616e;
       --shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
       --radius: 12px;
       --peek: 28px;
       --gap: 12px;
-      --dot: #d0d5dd;
+      --dot: #707783;
       --dot-active: #344054;
       --dot-progress: rgba(255, 255, 255, 0.4);
       --border: #ededed;
@@ -40,9 +40,9 @@
         --bg: #000000;
         --card: #1c1c1e;
         --text-primary: #ffffff;
-        --text-secondary: #98989d;
+        --text-secondary: #aeb4bd;
         --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-        --dot: #3a3a3c;
+        --dot: #a0a6b0;
         --dot-active: #ffffff;
         --dot-progress: rgba(0, 0, 0, 0.3);
         --border: #38383a;
@@ -69,10 +69,7 @@
       color: var(--text-primary);
       transition: background-color 0.3s ease, color 0.3s ease;
       
-      /* App Store Polish: Kill web text selection & long-press popups */
-      -webkit-user-select: none;
-      user-select: none;
-      -webkit-touch-callout: none;
+      /* Allow text selection and copying, including support information. */
     }
 
     /* Lazy Loading Fade-in */
@@ -227,7 +224,7 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   max-width: 600px;
   margin: 0 auto 30px auto;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 /* Titles and Text */
@@ -239,13 +236,13 @@
 
 .gl-warning-text {
   font-size: 1rem;
-  color: #e5e5ea; /* Slightly off-white for reading comfort */
+  color: var(--text-primary);
   margin-bottom: 20px;
   line-height: 1.4;
 }
 
 .gl-warning-text a {
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 600;
   text-decoration: underline;
 }
@@ -287,22 +284,22 @@
 }
 
 .gl-card-subtitle {
-  color: #8e8e93; /* Subtle gray matching the 'GuardianLock.org' text */
+  color: #b8bcc5;
   font-size: 0.85rem;
 }
 
 /* Icon inside the cards */
 .gl-card-icon {
-  color: #5a5a5e; /* Dimmed icon color */
+  color: #b8bcc5;
   display: flex;
   align-items: center;
 }
 
 /* Footer link at the very bottom */
 .gl-footer-link {
-  color: #8e8e93;
+  color: var(--text-primary);
   font-size: 0.85rem;
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 .gl-footer-link:hover {
@@ -527,6 +524,53 @@
       flex: 0 0 auto;
     }
 
+    /* Accessible contrast, focus, controls, and reduced-motion support. */
+    a:focus-visible, button:focus-visible {
+      outline: 3px solid var(--text-primary);
+      outline-offset: 4px;
+    }
+    .parent-center-image { background: #162a46; }
+    .parent-center-image img { object-fit: contain; padding: 16px; }
+    .carousel-card:focus-visible { outline-offset: -4px; }
+    .gl-card:focus-visible { outline-color: var(--text-primary); }
+    .gl-footer-link { display: inline-block; padding: 12px 0; }
+    .gl-card-text, .resource-item > div, .guide-footer > div { min-width: 0; }
+    .gl-card-title, .gl-card-subtitle { overflow-wrap: anywhere; }
+    .gl-card-icon { flex: 0 0 auto; }
+    .dot { width: 24px; height: 24px; background: transparent; }
+    .dot::before {
+      content: ""; position: absolute; inset: 8px;
+      border-radius: 999px; background: var(--dot);
+    }
+    .dot.active { width: 44px; background: transparent; }
+    .dot.active::before { background: var(--dot-active); }
+    .dot-progress { top: 8px; bottom: auto; left: 8px; height: 8px; max-width: calc(100% - 16px); }
+    .carousel-toggle {
+      display: block; margin: 4px auto 0; min-height: 44px;
+      padding: 8px 14px; border: 1px solid var(--text-secondary);
+      border-radius: 8px; background: var(--card); color: var(--text-primary);
+      cursor: pointer;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html, body { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+
+    /* Desktop-only refinement; keep the existing phone layout unchanged. */
+    @media (min-width: 768px) {
+      .app { max-width: 720px; }
+      .carousel-card {
+        height: auto;
+        aspect-ratio: 357 / 192;
+      }
+      .thumb {
+        height: auto;
+        aspect-ratio: 16 / 9;
+      }
+      .guide-img { height: 260px; }
+      .guide-img img { object-fit: contain; }
+    }
+
     @media (max-width: 390px) {
       :root { --peek: 22px; }
       .tile { width: 100%; }
@@ -540,7 +584,7 @@
     <section class="section">
       <h2 class="section-title">Proud Partners of</h2>
 
-      <div class="carousel-shell" id="carouselShell">
+      <div class="carousel-shell" id="carouselShell" role="region" aria-label="GuardianLock partners" aria-roledescription="carousel">
         <div class="carousel" id="partnersCarousel" aria-label="Partner carousel">
           <a class="carousel-card is-active" href="https://protectyounghearts.com/" target="_blank" rel="noopener noreferrer">
             <img class="bg" src="images/partner-protect-young-hearts.png" alt="Protect Young Hearts" loading="eager" fetchpriority="high" />
@@ -568,11 +612,12 @@
           <button class="dot" type="button" aria-label="Go to slide 3"><span class="dot-progress"></span></button>
           <button class="dot" type="button" aria-label="Go to slide 4"><span class="dot-progress"></span></button>
         </div>
+        <button class="carousel-toggle" id="carouselToggle" type="button" aria-controls="partnersCarousel">Pause slideshow</button>
       </div>
     </section>
 
     <section class="section">
-      <h2 class="section-title">GuardianLock</h2>
+      <h2 class="section-title">GuardianLock Resources</h2>
 
       <div class="grid">
         <a class="tile" href="guides.html">
@@ -586,7 +631,7 @@
           <p class="tile-title">Getting Started</p>
         </a>
 
-        <a class="tile" href="https://guardianlock.org/learn" target="_blank" rel="noopener noreferrer">
+        <a class="tile" href="#assessments">
           <div class="thumb">
             <img src="images/tile-thumbnail.png" alt="Assessments" loading="lazy" decoding="async" />
             <svg class="book-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -607,13 +652,24 @@
           </div>
           <p class="tile-title">Blogs</p>
         </a>
+
+        <a class="tile" href="https://shop.guardianlock.org/blogs/news" target="_blank" rel="noopener noreferrer">
+          <div class="thumb">
+            <img src="https://shop.guardianlock.org/cdn/shop/articles/Learn_Page_3b575b3e-ce07-4de7-a6f1-4b247fdb61a8.png?v=1792434901&amp;width=533" alt="Preview of GuardianLock learning resources" loading="lazy" decoding="async" />
+            <svg class="book-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4.75 6.75C4.75 5.64543 5.64543 4.75 6.75 4.75H11.25C12.3546 4.75 13.25 5.64543 13.25 6.75V18.25H6.75C5.64543 18.25 4.75 17.3546 4.75 16.25V6.75Z" stroke="currentColor" stroke-width="1.7"/>
+              <path d="M10.75 4.75H17.25C18.3546 4.75 19.25 5.64543 19.25 6.75V16.25C19.25 17.3546 18.3546 18.25 17.25 18.25H10.75V4.75Z" stroke="currentColor" stroke-width="1.7"/>
+            </svg>
+          </div>
+          <p class="tile-title">Articles</p>
+        </a>
       </div>
     </section>
 
     <section class="section">
-      <h2 class="section-title">Guides</h2>
+      <h2 class="section-title">Partner Guides and Resources</h2>
 
-      <a class="guide" href="https://protectyoungeyes.com/" target="_blank" rel="noopener noreferrer">
+      <a class="guide" href="https://www.protectyoungeyes.com/download" target="_blank" rel="noopener noreferrer">
         <div class="guide-img">
           <img src="images/guide-free-downloads.png" alt="Free Downloads" loading="lazy" decoding="async" />
           <div class="guide-overlay"></div>
@@ -649,7 +705,7 @@
       </a>
 
  <a class="guide" href="https://parentcenter.org/" target="_blank" rel="noopener noreferrer">
-        <div class="guide-img">
+        <div class="guide-img parent-center-image">
           <img src="images/ncose.webp" alt="NCOSE Parent Center" loading="lazy" decoding="async" />
         </div>
         <div class="guide-footer">
@@ -666,7 +722,7 @@
       </a>
      
  
-      <a class="guide" href="https://defendyoungminds.com/" target="_blank" rel="noopener noreferrer">
+      <a class="guide" href="https://www.defendyoungminds.com/guides" target="_blank" rel="noopener noreferrer">
         <div class="guide-img">
           <img
             src="https://cdn.prod.website-files.com/60ca2e58bdee27fbe657dd9e/673ea162a21197552da7fc94_parents-and-child-having-conversation.jpg"
@@ -690,7 +746,7 @@
       </a>
     </section>
 
-    <section class="section">
+    <section class="section" id="assessments">
       <h2 class="section-title">Assessments</h2>
       <div class="list-card">
         <a class="resource-item" href="https://protectyounghearts.com/" target="_blank" rel="noopener noreferrer">
@@ -717,17 +773,12 @@
           </svg>
         </a>
 
-        <a class="resource-item" href="https://guardianlock.org/assessments" target="_blank" rel="noopener noreferrer">
+        <div class="resource-item" aria-disabled="true">
           <div>
             <p class="resource-title">Parent Tech Boundaries</p>
-            <p class="resource-sub">GuardianLock.org</p>
+            <p class="resource-sub">Temporarily unavailable</p>
           </div>
-          <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M14 5H19V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M10 14L19 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M19 14V17C19 18.1046 18.1046 19 17 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </a>
+        </div>
       </div>
     </section>
 
@@ -782,7 +833,7 @@
       <div class="list-card">
         <a class="resource-item" href="https://guardianlock.org/support/" target="_blank" rel="noopener noreferrer" style="border-bottom: none; padding-bottom: 0;">
           <div>
-            <p class="resource-title">Help & Support for Subsribers</p>
+            <p class="resource-title">Help & Support for Subscribers</p>
             <p class="resource-sub">GuardianLock.org</p>
           </div>
           <svg class="share-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -866,6 +917,7 @@
   
   <div style="margin-top: 20px; padding-left: 5px;">
     <a href="https://parentcenter.org/get-help" class="gl-footer-link">
+      More help and resources from Parent Center
     </a>
   </div>
 </section>
@@ -897,6 +949,24 @@
     const dots = Array.from(dotsWrap.querySelectorAll(".dot"));
     const progressBars = dots.map(dot => dot.querySelector('.dot-progress'));
 
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const toggle = document.getElementById('carouselToggle');
+    let pauseRequested = reducedMotion.matches;
+    function updateToggle() {
+      toggle.textContent = pauseRequested ? 'Play slideshow' : 'Pause slideshow';
+    }
+    toggle.addEventListener('click', () => {
+      pauseRequested = !pauseRequested;
+      progress = 0;
+      lastTime = performance.now();
+      updateToggle();
+    });
+    reducedMotion.addEventListener('change', event => {
+      if (event.matches) pauseRequested = true;
+      updateToggle();
+    });
+    updateToggle();
+
     const AUTOPLAY_MS = 3500;
     let currentIndex = 0;
     let isInteracting = false;
@@ -907,7 +977,10 @@
     // Toggle active classes
     function updateVisuals() {
       slides.forEach((slide, i) => slide.classList.toggle("is-active", i === currentIndex));
-      dots.forEach((dot, i) => dot.classList.toggle("active", i === currentIndex));
+      dots.forEach((dot, i) => {
+        dot.classList.toggle("active", i === currentIndex);
+        dot.setAttribute('aria-pressed', String(i === currentIndex));
+      });
     }
 
     // The single source of truth timer loop
@@ -916,14 +989,14 @@
       const deltaTime = time - lastTime;
       lastTime = time;
 
-      if (!isInteracting) {
+      if (!isInteracting && !pauseRequested && !carouselShell.matches(':focus-within')) {
         progress += (deltaTime / AUTOPLAY_MS) * 100;
 
         // When the timer hits 100%, trigger the next slide
         if (progress >= 100) {
           progress = 0;
           const nextIndex = (currentIndex + 1) % slides.length;
-          carousel.scrollTo({ left: slides[nextIndex].offsetLeft, behavior: "smooth" });
+          carousel.scrollTo({ left: slides[nextIndex].offsetLeft, behavior: reducedMotion.matches ? "auto" : "smooth" });
         }
       }
 
@@ -981,8 +1054,12 @@
     // Manual dot clicks
     dots.forEach((dot, index) => {
       dot.addEventListener("click", () => {
-        carousel.scrollTo({ left: slides[index].offsetLeft, behavior: "smooth" });
+        carousel.scrollTo({ left: slides[index].offsetLeft, behavior: reducedMotion.matches ? "auto" : "smooth" });
       });
+    });
+
+    window.addEventListener('resize', () => {
+      carousel.scrollTo({ left: slides[currentIndex].offsetLeft, behavior: 'auto' });
     });
 
     // Fire it up
